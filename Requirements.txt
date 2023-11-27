@@ -1,9 +1,17 @@
-Numpy
-Scipy
-Ffmpeg
-Pydub
-Pandas
-Matplotlib 
+Numpy                    import numpy as np
+Scipy                    from scipy.io import wavfile
+                         import scipy.io
+Ffmpeg                   !pip install ffmpeg
+Pydub                    !pip install pydub  (Can convert audio format).
+                         from pydub import AudioSegment
+                         from pydub.playback import play
+Pandas                   import pandas as pd
+Matplotlib               import matplotlib.pyplot as plt
 LibROSA (Possibly necessary)
 
+Others:
+                         from os import path
+
+Make sure we can access another verison of the audio (asside our .wav file of the audio, being worked on by Rachelle).
+Check Audio files(s) before we convert it.
 Get the Code necessary to analyze the .wav file (audio file) inside of Python.
