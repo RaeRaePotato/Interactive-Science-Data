@@ -1,2 +1,9 @@
-Pandas, SciPy, Matplotlib, Numpy, or LibROSA (Possibly necessary)
-Get Code necessary to analyze the .wav file (audio file)
+Numpy
+Scipy
+Ffmpeg
+Pydub
+Pandas
+Matplotlib 
+LibROSA (Possibly necessary)
+
+Get the Code necessary to analyze the .wav file (audio file) inside of Python.
