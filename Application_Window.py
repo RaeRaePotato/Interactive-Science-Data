@@ -5,6 +5,7 @@ from tkinter.messagebox import showinfo
 from pydub import AudioSegment
 import os
 from mutagen import File
+from create_graph import display_waveform
 
 class Model:
     def __init__(self):
@@ -64,7 +65,11 @@ class Model:
             gfile_label = ttk.Label(self.root, text=f'{self.gfile} (Format: {new_format})')
             gfile_label.pack(side="bottom")
 
+
             self.remove_metadata_tags(self.gfile)
+
+            # Display waveform of the selected file
+            display_waveform(self.gfile)
 
     def single_channel(self):
         if self.is_multi_chan(self.input_file):
