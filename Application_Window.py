@@ -1,97 +1,132 @@
 import tkinter as tk
-from tkinter import ttk
-from tkinter import filedialog as fd
-from tkinter.messagebox import showinfo
+from tkinter import ttk, filedialog, messagebox
 from pydub import AudioSegment
-import os
 from mutagen import File
+import os
+
 
 class Model:
     def __init__(self):
         self.input_file = ''
-        self.gfile = ''
+        self.converted_file = ''
         self.root = tk.Tk()
         self.root.title('Tkinter Open File Dialog')
         self.root.resizable(False, False)
         self.root.geometry('500x250')
 
-    def convert_to_wav(self, input_file):
-        _, input_extension = os.path.splitext(input_file)
-        if input_extension.lower() == '.wav':
-            return input_file, 'wav'  # Return the original .wav file and format
+        # Create self.audio_length_label as a class attribute
+        self.audio_length_label = ttk.Label(self.root, text='Audio Length: N/A')
+        self.audio_length_label.pack(side="bottom")
 
-        else:
-            audioclip = AudioSegment.from_file(input_file, format=input_extension[1:])
-            self.input_file = audioclip.export("UpdatedClap.wav", format="wav")
-            return "UpdatedClap.wav", input_extension[1:]  # Return the new .wav file and format
+    def convert_to_wav(self, input_file):
+        try:
+            _, input_extension = os.path.splitext(input_file)
+            if input_extension.lower() == '.wav':
+                self.input_file = input_file
+                return input_file, 'wav'  # Return the original .wav file and format
+            else:
+                audioclip = AudioSegment.from_file(input_file, format=input_extension[1:])
+                output_file = "UpdatedClap.wav"
+                audioclip.export(output_file, format="wav")
+                self.input_file = output_file
+                return output_file, input_extension[1:]  # Return the new .wav file and format
+        except Exception as e:
+            messagebox.showerror("Conversion Error", f"Error converting file: {e}")
+            return None, None
 
     def remove_metadata_tags(self, input_file):
-        audio = File(input_file)
-        audio.delete()
-        audio.save()
-
-    def select_file(self):
-        filetypes = (
-            ('Audio Files', ('*.wav', '.mp3')),
-            ('All files', '*.*')
-        )
-
-        filename = fd.askopenfilename(
-            title='Open a file',
-            initialdir='/',
-            filetypes=filetypes)
-
-        if filename:
-            _, file_extension = os.path.splitext(filename)
-            if file_extension.lower() == '.wav':
-                self.gfile, new_format = filename, 'wav'
-                showinfo(
-                    title='Selected File',
-                    message=f'Selected .wav file: {filename}'
-                )
-            else:
-                new_file, new_format = self.convert_to_wav(filename)
-                self.gfile = new_file
-                showinfo(
-                    title='File Converted',
-                    message=f'Selected file converted to .wav: {self.gfile}'
-                )
-
-                # Remove metadata tags from the newly created file
-                self.remove_metadata_tags(self.gfile)
-
-            # Update gfile_label only once, outside of the if-else block
-            gfile_label = ttk.Label(self.root, text=f'{self.gfile} (Format: {new_format})')
-            gfile_label.pack(side="bottom")
-
-            self.remove_metadata_tags(self.gfile)
-
-    def single_channel(self):
-        if self.is_multi_chan(self.input_file):
-            audioclip = AudioSegment.from_wav(self.input_file).set_channels(1)
-            # Assuming you want to convert to wav and update input_file
-            self.input_file, new_format = self.convert_to_wav(audioclip)
-            showinfo(
-                title='Single Channel',
-                message=f'Single channel applied. Updated file: {self.input_file} (Format: {new_format})'
-            )
-        else:
-            showinfo(
-                title='Single Channel',
-                message='The input file does not have 2 channels. No action taken.'
-            )
+        try:
+            audio = File(input_file)
+            audio.delete()
+            audio.save()
+        except Exception as e:
+            messagebox.showerror("Metadata Removal Error", f"Error removing metadata: {e}")
 
     def is_multi_chan(self, input_file):
-        audioclip = AudioSegment.from_file(input_file)
-        return audioclip.channels == 2
+        try:
+            audioclip = AudioSegment.from_file(input_file)
+            return audioclip.channels == 2
+        except Exception as e:
+            messagebox.showerror("Channel Check Error", f"Error checking channels: {e}")
+            return False
+
+    def audio_length(self):
+        try:
+            if self.input_file:
+                if self.input_file.lower().endswith('.wav'):
+                    audioclip = AudioSegment.from_file(self.input_file)
+                else:
+                    original_file = os.path.splitext(self.input_file)[0] + os.path.splitext(self.converted_file)[1]
+                    audioclip = AudioSegment.from_file(original_file)
+
+                duration_seconds = audioclip.duration_seconds
+                self.audio_length_label.config(text=f'Audio Length: {duration_seconds:.2f} seconds')
+        except Exception as e:
+            messagebox.showerror("Duration Calculation Error", f"Error calculating duration: {e}")
 
     def run(self):
-        # open button
-        open_button = ttk.Button(self.root, text='Load a file', command=self.select_file)
-        open_button.pack(expand=True)
+        try:
+            open_button = ttk.Button(self.root, text='Load a file', command=self.select_file)
+            open_button.pack(expand=True)
 
-        # run the application
-        self.root.mainloop()
+            # Run the application window
+            self.root.mainloop()
+        except Exception as e:
+            messagebox.showerror("Application Error", f"An unexpected error occurred: {e}")
+
+    def select_file(self):
+        try:
+            filetypes = (
+                ('Audio Files', ('*.wav', '.mp3')),
+                ('All files', '*.*')
+            )
+
+            filename = filedialog.askopenfilename(
+                title='Open a file',
+                initialdir='/',
+                filetypes=filetypes)
+
+            if filename:
+                _, file_extension = os.path.splitext(filename)
+                new_file, new_format = self.convert_to_wav(filename)
+                if new_file is not None:
+                    self.converted_file = new_file
+                    messagebox.showinfo('File Converted', f'Selected file converted to .wav: {self.converted_file}')
+                    self.remove_metadata_tags(self.converted_file)
+                    gfile_label = ttk.Label(self.root, text=f'{self.converted_file} (Format: {new_format})')
+                    gfile_label.pack(side="bottom")
+                    if file_extension.lower() != '.wav':
+                        self.input_file = self.converted_file
+                    self.audio_length()
+
+                    # Schedule the show_waveform method after 500 milliseconds
+                    self.root.after(500, self.show_waveform)
+        except Exception as e:
+            messagebox.showerror("File Selection Error", f"Error selecting file: {e}")
+
+    def run(self):
+        try:
+            open_button = ttk.Button(self.root, text='Load a file', command=self.select_file)
+            open_button.pack(expand=True)
+
+            # Schedule the show_waveform method after 500 milliseconds
+            self.root.after(500, self.show_waveform)
+
+            # Run the application window
+            self.root.mainloop()
+        except Exception as e:
+            messagebox.showerror("Application Error", f"An unexpected error occurred: {e}")
+
+    def show_waveform(self):
+        try:
+            if self.converted_file and os.path.exists(self.converted_file):
+                import create_graph
+                create_graph.display_waveform(self.converted_file)
+            else:
+                messagebox.showinfo("No File Selected", "Please load an audio file before displaying the waveform.")
+        except Exception as e:
+            messagebox.showerror("Waveform Display Error", f"Error displaying waveform: {e}")
+
 
 # Create an instance of the Model class and run the application
 model_instance = Model()
