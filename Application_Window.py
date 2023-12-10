@@ -14,6 +14,9 @@ class Model:
         self.root.resizable(False, False)
         self.root.geometry('800x600')
 
+        # Create self.resonance_label as a class attribute
+        self.resonance_label = ttk.Label(self.root, text='Resonance: N/A')
+        self.resonance_label.pack(side="bottom")
         # Create self.audio_length_label as a class attribute
         self.audio_length_label = ttk.Label(self.root, text='Audio Length: N/A')
         self.audio_length_label.pack(side="bottom")
@@ -64,15 +67,21 @@ class Model:
         except Exception as e:
             messagebox.showerror("Duration Calculation Error", f"Error calculating duration: {e}")
 
-    def run(self):
+    def calculate_resonance(self):
         try:
-            open_button = ttk.Button(self.root, text='Load a file', command=self.select_file)
-            open_button.pack(expand=True)
+            if self.converted_file and os.path.exists(self.converted_file):
+                audio = AudioSegment.from_file(self.converted_file)
+                samples = np.array(audio.get_array_of_samples())
+                sample_rate = audio.frame_rate
 
-            # Run the application window
-            self.root.mainloop()
+                n = len(samples)
+                freq = np.fft.rfftfreq(n, d=1 / sample_rate)
+                fft = np.abs(np.fft.rfft(samples))
+
+                resonance_freq = freq[np.argmax(fft)]  # Calculating resonance frequency
+                self.resonance_label.config(text=f'Resonance: {resonance_freq:.2f} Hz')
         except Exception as e:
-            messagebox.showerror("Application Error", f"An unexpected error occurred: {e}")
+            messagebox.showerror("Resonance Calculation Error", f"Error calculating resonance: {e}")
 
     def select_file(self):
         try:
@@ -98,6 +107,7 @@ class Model:
                     if file_extension.lower() != '.wav':
                         self.input_file = self.converted_file
                     self.audio_length()
+                    self.calculate_resonance()
 
                     # Schedule the show_waveform method after 500 milliseconds
                     self.root.after(500, self.show_graphs)
@@ -114,8 +124,6 @@ class Model:
             self.root.mainloop()
         except Exception as e:
             messagebox.showerror("Application Error", f"An unexpected error occurred: {e}")
-
-
 
     def show_graphs(self):
         try:
