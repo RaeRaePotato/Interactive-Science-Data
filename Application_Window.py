@@ -1,11 +1,9 @@
+#application_window.py
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
-from pydub import AudioSegment
+from tkinter import ttk, filedialog
 from mutagen import File
 import os
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import numpy as np
+from create_graph import*
 
 class Model:
     def __init__(self):
@@ -102,7 +100,7 @@ class Model:
                     self.audio_length()
 
                     # Schedule the show_waveform method after 500 milliseconds
-                    self.root.after(500, self.show_waveform)
+                    self.root.after(500, self.show_graphs)
         except Exception as e:
             messagebox.showerror("File Selection Error", f"Error selecting file: {e}")
 
@@ -111,46 +109,23 @@ class Model:
             open_button = ttk.Button(self.root, text='Load a file', command=self.select_file)
             open_button.pack(expand=True)
 
-            # Schedule the show_waveform method after 500 milliseconds
-            self.root.after(500, self.show_waveform)
+            self.root.after(500, self.show_graphs)
 
-            # Run the application window
             self.root.mainloop()
         except Exception as e:
             messagebox.showerror("Application Error", f"An unexpected error occurred: {e}")
 
-    def display_waveform(self, file_path):
-        try:
-            audio = AudioSegment.from_file(file_path)
-            samples = np.array(audio.get_array_of_samples())
-            sample_rate = audio.frame_rate
-            time = np.arange(0, len(samples)) / sample_rate
 
-            # Create a figure and plot the waveform
-            fig, ax = plt.subplots(figsize=(7, 5))
-            ax.plot(time, samples)
-            ax.set_title('Audio Waveform')
-            ax.set_xlabel('Time (s)')
-            ax.set_ylabel('Amplitude')
-            ax.grid(True)
-            plt.tight_layout()
 
-            # Embed the matplotlib figure in a Tkinter window
-            waveform_canvas = FigureCanvasTkAgg(fig, master=self.root)
-            waveform_canvas.draw()
-            waveform_canvas.get_tk_widget().pack()
-
-        except Exception as e:
-            messagebox.showerror("Waveform Display Error", f"Error displaying waveform: {e}")
-
-    def show_waveform(self):
+    def show_graphs(self):
         try:
             if self.converted_file and os.path.exists(self.converted_file):
-                self.display_waveform(self.converted_file)
+                create_waveform(self.root, self.converted_file)  # Display waveform in the main window
+                create_frequency_graph(self.converted_file)  # Display frequency graph in a separate window
             else:
-                messagebox.showinfo("No File Selected", "Please load an audio file before displaying the waveform.")
+                messagebox.showinfo("No File Selected", "Please load an audio file.")
         except Exception as e:
-            messagebox.showerror("Waveform Display Error", f"Error displaying waveform: {e}")
+            messagebox.showerror("Graph Display Error", f"Error displaying graphs: {e}")
 
 
 # Create an instance of the Model class and run the application
