@@ -130,8 +130,8 @@ class Model:
             if self.converted_file and os.path.exists(self.converted_file):
                 create_waveform(self.root, self.converted_file)  # Display waveform in the main window
                 create_frequency_graph(self.converted_file)  # Display frequency graph in a separate window
-            #else:
-                #messagebox.showinfo("No File Selected", "Please load an audio file.")
+            else:
+                messagebox.showinfo("No File Selected", "Please load an audio file.")
         except Exception as e:
             messagebox.showerror("Graph Display Error", f"Error displaying graphs: {e}")
 
