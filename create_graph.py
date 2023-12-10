@@ -37,13 +37,18 @@ def create_frequency_graph(file_path):
         freq = np.fft.rfftfreq(n, d=1 / sample_rate)
         fft = np.abs(np.fft.rfft(samples))
 
-        fig, ax = plt.subplots(figsize=(7, 5))
+        resonance_freq = freq[np.argmax(fft)]  # Calculating resonance frequency
+        resonance_text = f"Resonance: {resonance_freq:.2f} Hz"
+
+        fig, ax = plt.subplots(figsize=(8, 6))
         ax.plot(freq, fft)
         ax.set_title('Frequency Spectrum')
         ax.set_xlabel('Frequency (Hz)')
         ax.set_ylabel('Amplitude')
         ax.grid(True)
         plt.tight_layout()
+
+        ax.text(0.5, -0.11, resonance_text, transform=ax.transAxes, ha='center')  # Adjust y-position for resonance text
 
         root_freq = Toplevel()
         root_freq.title("Frequency Graph")
