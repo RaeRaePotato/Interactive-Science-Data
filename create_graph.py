@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from scipy.io import wavfile
 import numpy as np
 from tkinter import messagebox, Toplevel
+import wave as wav
 
 
 def create_waveform(root, file_path):
@@ -74,7 +75,7 @@ class Frequency:
         index_of_frequency = np.where(self.freqs == target_frequency)[0][0]
         # find sound data for a particular frequency data_for_frequency = spectrum[index_of_frequency]
         # change a digital signal
-        data_in_db_fun = 10 * np.log10(data_for_frequency)
+        data_in_db_fun = 10 * np.log10(self.data_for_frequency)
         return data_in_db_fun
 
     def find_nearest_value(array, value):
@@ -137,8 +138,72 @@ class Frequency:
 
         rt60 = rt20 * 3
         print('%.3f' % abs(rt60))
-
         return '%.3f' % (abs(rt60) - 0.5)
+
+    def high_freq(self):
+
+        with wav.open(self.input_file, 'r') as audio_file:
+            signal = np.frombuffer(audio_file.readframes(-1), dtype=np.int16)
+        high_slice = int(len(signal) * 0.4)
+        high_wave = signal[:high_slice]
+        plt.figure(figsize=(8, 4))
+        plt.plot(high_wave, 'g')
+        plt.ylabel('Amplitude')
+        plt.xlabel('Time')
+        plt.title('High Wave-form')
+        plt.show()
+
+        self.set_file_path('UpdatedClap.wav')
+        return high_wave
+
+    def mid_freq(self):
+        # opens the wav file for reading to pull signal, then closes it
+        with wav.open(self.input_file, 'r') as audio_file:
+            signal = np.frombuffer(audio_file.readframes(-1), dtype=np.int16)
+
+        # cuts signify areas of the signal that represent different frequencies or power
+        high_slice = int(len(signal) * 0.4)
+        mid_slice = int(len(signal) * 0.6)
+        mid_wave = signal[high_slice:mid_slice]
+
+        # plot the signal
+        plt.figure(figsize=(8, 4))
+        plt.plot(mid_wave, 'y')
+        plt.ylabel('Amplitude')
+        plt.xlabel('Time')
+        plt.title('Mid Wave-form')
+        plt.show()
+
+        # reinitialize the file, as wave closes the file once the function is complete
+        self.set_file_path('UpdatedClap.wav')
+
+        # passing the modified signal for possible future use
+        return mid_wave
+
+    def low_freq(self):
+        # opens the wav file for reading to pull signal, then closes it
+        with wav.open(self.input_file, 'r') as audio_file:
+            signal = np.frombuffer(audio_file.readframes(-1), dtype=np.int16)
+
+        # cuts signify areas of the signal that represent different frequencies or power
+        mid_slice = int(len(signal) * 0.6)
+        low_wave = signal[mid_slice:]
+
+        # plotting the waveform
+        plt.figure(figsize=(8, 4))
+        plt.plot(low_wave, 'r')
+        plt.ylabel('Amplitude')
+        plt.xlabel('Time')
+        plt.title('Low Wave-form')
+        plt.show()
+
+        # reinitialize the file, as wave closes the file once the function is complete
+        self.set_file_path('UpdatedClap.wav')
+
+        # passing the modified signal for possible future use
+        return low_wave
+
+
 
 
 
