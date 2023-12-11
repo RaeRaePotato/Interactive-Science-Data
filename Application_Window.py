@@ -1,16 +1,10 @@
 # application_window.py
-import tkinter as tk
 from tkinter import ttk, filedialog
 from mutagen import File
 import os
-<<<<<<< HEAD
-from create_graph import *
-
-
-=======
 from create_graph import*
 import tkinter as tk
->>>>>>> 4df339ac340aed59ad93591f50bcc183f105dd49
+
 class Model:
     def __init__(self):
         self.input_file = ''
