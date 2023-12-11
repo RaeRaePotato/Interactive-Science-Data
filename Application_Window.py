@@ -3,10 +3,13 @@ from tkinter import ttk, filedialog
 from mutagen import File
 import os
 from create_graph import*
+import create_graph as cg
 import tkinter as tk
 
 class Model:
+    diff = ''
     def __init__(self):
+        self.difference = cg.Frequency.rt60_difference
         self.input_file = ''
         self.converted_file = ''
         self.root = tk.Tk()
@@ -15,7 +18,7 @@ class Model:
         self.root.geometry('800x600')
 
         # Create self.resonance_label as a class attribute
-        self.rt60_difference_label = ttk.Label(self.root, text='RT60 Difference: N/A')
+        self.rt60_difference_label = ttk.Label(self.root, text= f'RT60 Difference: {self.difference}')
         self.rt60_difference_label.pack(side="bottom")
         self.resonance_label = ttk.Label(self.root, text='Resonance: N/A')
         self.resonance_label.pack(side="bottom")
@@ -84,11 +87,6 @@ class Model:
                 self.resonance_label.config(text=f'Resonance: {resonance_freq:.2f} Hz')
         except Exception as e:
             messagebox.showerror("Resonance Calculation Error", f"Error calculating resonance: {e}")
-
-    # Add a method for RT60 difference calculation
-
-
-
 
     def select_file(self):
         try:
@@ -171,7 +169,10 @@ class Model:
         combine_button = ttk.Button(self.root, text='Combine Graphs', command=self)
         combine_button.pack(expand=True)
 
-    def data_frequencies(self, ):
+#    def difference(self):
+
+
+#    def data_frequencies(self, ):
 
 
 # Create an instance of the Model class and run the application
