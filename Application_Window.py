@@ -1,5 +1,4 @@
 #application_window.py
-import tkinter as tk
 from tkinter import ttk, filedialog
 from mutagen import File
 import os
@@ -118,9 +117,6 @@ class Model:
         try:
             open_button = ttk.Button(self.root, text='Load a file', command=self.select_file)
             open_button.pack(expand=True)
-
-            self.root.after(500, self.show_graphs)
-
             self.root.mainloop()
         except Exception as e:
             messagebox.showerror("Application Error", f"An unexpected error occurred: {e}")
@@ -129,7 +125,6 @@ class Model:
         try:
             if self.converted_file and os.path.exists(self.converted_file):
                 create_waveform(self.root, self.converted_file)  # Display waveform in the main window
-                create_frequency_graph(self.converted_file)  # Display frequency graph in a separate window
             else:
                 messagebox.showinfo("No File Selected", "Please load an audio file.")
         except Exception as e:
