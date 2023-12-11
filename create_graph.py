@@ -7,6 +7,7 @@ import numpy as np
 from tkinter import messagebox, Toplevel
 
 
+
 def create_waveform(root, file_path):
     try:
         audio = AudioSegment.from_file(file_path)
@@ -30,97 +31,74 @@ def create_waveform(root, file_path):
         messagebox.showerror("Waveform Display Error", f"Error displaying waveform: {e}")
 
 
-def create_frequency_graph(file_path):
-    try:
-        audio = AudioSegment.from_file(file_path)
-        samples = np.array(audio.get_array_of_samples())
-        sample_rate = audio.frame_rate
-
-        n = len(samples)
-        freq = np.fft.rfftfreq(n, d=1 / sample_rate)
-        fft = np.abs(np.fft.rfft(samples))
-
-        fig, ax = plt.subplots(figsize=(7, 5))
-        ax.plot(freq, fft)
-        ax.set_title('Frequency Spectrum')
-        ax.set_xlabel('Frequency (Hz)')
-        ax.set_ylabel('Amplitude')
-        ax.grid(True)
-        plt.tight_layout()
-
-        root_freq = Toplevel()
-        root_freq.title("Frequency Graph")
-        canvas = FigureCanvasTkAgg(fig, master=root_freq)
-        canvas.draw()
-        canvas.get_tk_widget().pack()
-
-    except Exception as e:
-        messagebox.showerror("Frequency Graph Display Error", f"Error displaying frequency graph: {e}")
-
-
 class Frequency:
     sample_rate, data = wavfile.read("UpdatedClap.wav")
 
-    def find_target_frequency(self, freqs):
-        for x in freqs:
-            if x > 1000:
-                break
-        return x
+    def find_target_frequency(self, freqs, target_freq):
+        # Find the nearest frequency in the spectrum to the target frequency
+        return min(freqs, key=lambda x: abs(x - target_freq))
 
-    def frequency_check(self):  # identify a frequency to check
-        # print(freqs)
-        global target_frequency
-        target_frequency = self.find_target_frequency(self.freqs)
-        index_of_frequency = np.where(self.freqs == target_frequency)[0][0]
-        # find sound data for a particular frequency data_for_frequency = spectrum[index_of_frequency]
+    def frequency_check(self, target_freq):  # identify a frequency to check
+        index_of_frequency = np.where(self.freqs == target_freq)[0][0]
+        data_for_frequency = self.spectrum[index_of_frequency]
         # change a digital signal
         data_in_db_fun = 10 * np.log10(data_for_frequency)
         return data_in_db_fun
 
-    def find_nearest_value(array, value):
-        array = np.asarray(array)
+    def create_frequency_graph(self, target_freq, title):
+        try:
+            data_in_db = self.frequency_check(target_freq)
 
-        idx = (np.abs(array - value)).argmin()
-        return array[idx]
+            fig, ax = plt.subplots(figsize=(7, 5))
+            ax.plot(self.t, data_in_db, linewidth=1, alpha=0.7, color='#004bc6')
+            ax.set_title(title)
+            ax.set_xlabel('Time (s)')
+            ax.set_ylabel('Power (dB)')
 
-    def plot_rt60(self):
-        data_in_db = self.frequency_check()
-        plt.figure(2)
+            # Get the index of the max value
+            index_of_max = np.argmax(data_in_db)
+            ax.plot(self.t[index_of_max], data_in_db[index_of_max], 'go')
 
-        plt.plot(self.t, data_in_db, linewidth=1, alpha=0.7, color='#004bc6')
-        plt.xlabel('Time (s)')
-        plt.ylabel('Power (dB)')
+            # Cut the array from the max value
+            sliced_array = data_in_db[index_of_max:]
+            value_of_max_less_5 = data_in_db[index_of_max] - 5
 
-        # Get the index of the max value
-        index_of_max = np.argmax(data_in_db)
-        value_of_max = data_in_db[index_of_max]
-        plt.plot(self.t[index_of_max], data_in_db[index_of_max], 'go')
+            # Find the closest value < 5db
+            value_of_max_less_5 = self.find_nearest_value(sliced_array, value_of_max_less_5)
+            index_of_max_less_5 = np.where(data_in_db == value_of_max_less_5)
+            ax.plot(self.t[index_of_max_less_5], data_in_db[index_of_max_less_5], 'yo')
+#Cut the array from -5db
+            value_of_max_less_25 = data_in_db[index_of_max] - 25
+            value_of_max_less_25 = self.find_nearest_value(sliced_array, value_of_max_less_25)
+            index_of_max_less_25 = np.where(data_in_db == value_of_max_less_25)
+            ax.plot(self.t[index_of_max_less_25], data_in_db[index_of_max_less_25], 'ro')
 
-        # Cut the array from the max value
-        sliced_array = data_in_db[index_of_max:]
-        value_of_max_less_5 = value_of_max - 5
+            plt.grid()
+            plt.tight_layout()
 
-        # Find the closest value < 5db
-        value_of_max_less_5 = self.find_nearest_value(sliced_array, value_of_max_less_5)
-        index_of_max_less_5 = np.where(data_in_db == value_of_max_less_5)
+            return fig
 
-        plt.plot(self.t[index_of_max_less_5], data_in_db[index_of_max_less_5], 'yo')
+        except Exception as e:
+            messagebox.showerror("Frequency Graph Display Error", f"Error displaying frequency graph: {e}")
 
-        # Cut the array from -5db
-        value_of_max_less_25 = value_of_max - 25
-        value_of_max_less_25 = self.find_nearest_value(sliced_array, value_of_max_less_25)
-        index_of_max_less_25 = np.where(data_in_db == value_of_max_less_25)
-        plt.plot(self.t[index_of_max_less_25], data_in_db[index_of_max_less_25], 'ro')
+    def create_high_mid_low_frequency_graphs(self):
+        high_freq = 2000  # Set the high-frequency threshold
+        mid_freq = 1000   # Set the mid-frequency threshold
 
-        rt20 = (self.t[index_of_max_less_5] - self.t[self.index_of_max_les_25])[0]
-        # print (f'rt20= {rt20}')
-        rt60 = 3 * rt20
-        # plt.xlim(0, ((round(abs(rt60), 2)) * 1.5))
-        plt.grid()
-        plt.show()
-        print(f'The RT60 reverb time at freq {int(target_frequency)}Hz is {round(abs(rt60), 2)} seconds')
+        high_freq_graph = self.create_frequency_graph(high_freq, 'High Frequency Spectrum')
+        mid_freq_graph = self.create_frequency_graph(mid_freq, 'Mid Frequency Spectrum')
 
-    # RT60 Difference
+        low_freq_graph = plt.figure(figsize=(7, 5))
+        low_freq_ax = low_freq_graph.add_subplot(111)
+        low_freq_ax.plot(self.t, self.data, color='green')
+        low_freq_ax.set_title('Low Frequency Spectrum')
+        low_freq_ax.set_xlabel('Time (s)')
+        low_freq_ax.set_ylabel('Amplitude')
+        low_freq_ax.grid(True)
+        plt.tight_layout()
+
+        return high_freq_graph, mid_freq_graph, low_freq_graph
+
     def rt60_difference(self):
         data_in_db = self.frequency_check()
         index_of_max = np.argmax(data_in_db)
