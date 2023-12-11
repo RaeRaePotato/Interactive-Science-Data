@@ -3,9 +3,14 @@ import tkinter as tk
 from tkinter import ttk, filedialog
 from mutagen import File
 import os
+<<<<<<< HEAD
 from create_graph import *
 
 
+=======
+from create_graph import*
+import tkinter as tk
+>>>>>>> 4df339ac340aed59ad93591f50bcc183f105dd49
 class Model:
     def __init__(self):
         self.input_file = ''
@@ -16,6 +21,8 @@ class Model:
         self.root.geometry('800x600')
 
         # Create self.resonance_label as a class attribute
+        self.rt60_difference_label = ttk.Label(self.root, text='RT60 Difference: N/A')
+        self.rt60_difference_label.pack(side="bottom")
         self.resonance_label = ttk.Label(self.root, text='Resonance: N/A')
         self.resonance_label.pack(side="bottom")
         # Create self.audio_length_label as a class attribute
@@ -84,6 +91,11 @@ class Model:
         except Exception as e:
             messagebox.showerror("Resonance Calculation Error", f"Error calculating resonance: {e}")
 
+    # Add a method for RT60 difference calculation
+
+
+
+
     def select_file(self):
         try:
             filetypes = (
@@ -126,7 +138,36 @@ class Model:
     def show_graphs(self):
         try:
             if self.converted_file and os.path.exists(self.converted_file):
-                create_waveform(self.root, self.converted_file)  # Display waveform in the main window
+                create_waveform(self.root, self.converted_file)
+
+                # Instantiate the Frequency class with the converted file
+                frequency_instance = Frequency()
+
+                # Get high, mid, low frequency graphs
+                high_freq_graph, mid_freq_graph, low_freq_graph = frequency_instance.create_high_mid_low_frequency_graphs()
+
+                # Display high-frequency graph in a separate window
+                root_high_freq = Toplevel()
+                canvas_high_freq = FigureCanvasTkAgg(high_freq_graph, master=root_high_freq)
+                canvas_high_freq.draw()
+                canvas_high_freq.get_tk_widget().pack()
+
+                # Display mid-frequency graph in a separate window
+                root_mid_freq = Toplevel()
+                canvas_mid_freq = FigureCanvasTkAgg(mid_freq_graph, master=root_mid_freq)
+                canvas_mid_freq.draw()
+                canvas_mid_freq.get_tk_widget().pack()
+
+                # Display low-frequency graph in a separate window
+                root_low_freq = Toplevel()
+                canvas_low_freq = FigureCanvasTkAgg(low_freq_graph, master=root_low_freq)
+                canvas_low_freq.draw()
+                canvas_low_freq.get_tk_widget().pack()
+
+                # Calculate RT60 difference and update the label
+                rt60_diff = frequency_instance.rt60_difference()
+                self.rt60_difference_label.config(text=f'RT60 Difference: {rt60_diff} seconds')
+
             else:
                 messagebox.showinfo("No File Selected", "Please load an audio file.")
         except Exception as e:
