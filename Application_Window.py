@@ -1,8 +1,10 @@
-#application_window.py
+# application_window.py
+import tkinter as tk
 from tkinter import ttk, filedialog
 from mutagen import File
 import os
-from create_graph import*
+from create_graph import *
+
 
 class Model:
     def __init__(self):
@@ -129,6 +131,12 @@ class Model:
                 messagebox.showinfo("No File Selected", "Please load an audio file.")
         except Exception as e:
             messagebox.showerror("Graph Display Error", f"Error displaying graphs: {e}")
+
+    def combine_button(self):
+        combine_button = ttk.Button(self.root, text='Combine Graphs', command=self)
+        combine_button.pack(expand=True)
+
+    def data_frequencies(self, ):
 
 
 # Create an instance of the Model class and run the application
