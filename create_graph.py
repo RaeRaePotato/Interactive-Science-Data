@@ -5,6 +5,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 from tkinter import messagebox, Toplevel
 
+
 def create_waveform(root, file_path):
     try:
         audio = AudioSegment.from_file(file_path)
@@ -45,7 +46,7 @@ def create_frequency_graph(file_path):
         ax.grid(True)
         plt.tight_layout()
 
-        root_freq =Toplevel()
+        root_freq = Toplevel()
         root_freq.title("Frequency Graph")
         canvas = FigureCanvasTkAgg(fig, master=root_freq)
         canvas.draw()
@@ -53,4 +54,3 @@ def create_frequency_graph(file_path):
 
     except Exception as e:
         messagebox.showerror("Frequency Graph Display Error", f"Error displaying frequency graph: {e}")
-
